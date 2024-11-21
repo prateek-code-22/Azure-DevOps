@@ -1,6 +1,4 @@
 # Azure-DevOps 
-from staging branch
+- test_branch 
 
-added from vs code
-
- updated inside test branch
+### added the pipeline file.
