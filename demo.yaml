@@ -1,0 +1,27 @@
+name: python web app
+
+trigger:
+  - main
+
+jobs:
+  - job: 'build'
+  displayName: 'Build and test'
+  pool:
+    vmImage: 'ubuntu-latest'
+
+  steps:
+    - script: |
+      echo "setting the python environment..." 
+      python -m venv env
+    displayName: Set up env
+
+    - script: |
+      echo "installing requirements..."
+      pip install -r requirements.txt
+    displayName: installed the dependency
+
+    - script: |
+      echo "testing..."
+      source venv/bin/activate
+      pytest tests/
+    displayName: run tests
