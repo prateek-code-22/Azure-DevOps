@@ -1,0 +1,57 @@
+# to trigger this pipeline for main branch when any event occurs(like merging of code(PR)).
+trigger:
+  - main
+
+# stages contains the stages, jobs and tasks.
+# stage/job name = Build
+# Build job will run on ubuntu os and contains steps to set up project.
+# steps- install npm then custom command is added because 'build npm' is not present. 
+# create the artifact of container location with 'drop' name.
+# In 2nd stage deploy, we download the build artifact.
+# then run the webapp connect to azure by giving the spn access. 
+
+stages:
+  - stage: Bulid 
+
+  jobs:
+    - job: Build
+      pool:
+        vmImage: 'ubuntu-latest'
+      
+      steps:
+      - task: Npm@1
+        inputs:
+          command: 'install'
+      
+      - task: Npm@1
+        inputs:
+          command: 'custom'
+          customCommand: 'run build'
+
+      - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: 'build'
+        ArtifactName: 'drop'
+        publishLocation: 'Container'
+
+  - stage: deploy
+  jobs:
+    - job: deploy
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: DownloadBuildArtifacts@1
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'drop'
+          downloadPath: '$(System.ArtifactsDirectory)'
+
+      - task: AzureRmWebAppDeployment@4
+      inputs:
+        ConnectionType: 'AzureRM'
+        azureSubscription: 'tech'
+        appType: 'webAppLinux'
+        WebAppName: 'abc'
+        packageForLinux: '$(System.ArtifactsDirectory)/drop'
+        RuntimeStack: 'STATICSITE|1.0
